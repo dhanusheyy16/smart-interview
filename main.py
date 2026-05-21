@@ -1,4 +1,6 @@
 import os
+# Must be set BEFORE any librosa/numba imports to prevent Render LLVM compiler timeouts
+os.environ["NUMBA_DISABLE_JIT"] = "1"
 import uuid
 import json
 import logging
