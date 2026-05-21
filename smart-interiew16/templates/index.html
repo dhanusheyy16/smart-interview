@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart AI Interview Analyzer - Premium Feedback Platform</title>
+    <!-- CSS File Link -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- Nav Bar -->
+    <nav>
+        <div class="logo">
+            <div class="logo-icon">🎙️</div>
+            Smart<span>Interview</span>
+        </div>
+        <div class="nav-links">
+            <a href="/">Practice Analyzer</a>
+            <a href="https://github.com" target="_blank">Documentation</a>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Hero Title -->
+        <section class="hero">
+            <h1>Unlock Your True <span>Interview Potential</span></h1>
+            <p>Upload or record your mock interview video. Our multi-modal AI instantly analyzes your voice pitch, filler words, body posture, smile warmth, and speech clarity to deliver expert executive feedback.</p>
+        </section>
+
+        {% if error %}
+        <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); color: var(--danger); padding: 16px; border-radius: 12px; margin-bottom: 30px; text-align: center; font-weight: 500;">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <!-- Interactive Grid Toggles -->
+        <div class="action-grid">
+            
+            <!-- Upload Module -->
+            <div id="video-upload-section" class="glass-panel action-card">
+                <span class="card-icon">📂</span>
+                <h3>Upload Interview Video</h3>
+                <p>Drag and drop your practice video or browse files. Support MP4, WEBM, AVI formats up to 64MB.</p>
+                
+                <div class="upload-zone" id="upload-area">
+                    <span style="font-size: 2.5rem; margin-bottom: 12px;">☁️</span>
+                    <p style="font-size: 0.95rem; margin-bottom: 5px; font-weight: 500;">Drag and drop video here</p>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary);">or click to select file</p>
+                    <input type="file" id="file-input" style="display: none;" accept="video/*">
+                    <button class="upload-btn">Browse Files</button>
+                </div>
+            </div>
+
+            <!-- Webcam Recording Module -->
+            <div class="glass-panel action-card" style="display: flex; flex-direction: column; justify-content: center; min-height: 380px;">
+                <!-- Setup Screen -->
+                <div id="webcam-setup" style="display: block; width: 100%;">
+                    <span class="card-icon">🎥</span>
+                    <h3>Record Live Interview</h3>
+                    <p>Record a 15-90 seconds response directly in your web browser. Perfect for analyzing fast speech under pressure.</p>
+                    <button class="upload-btn" id="open-webcam-btn">Initialize Web Camera</button>
+                </div>
+
+                <!-- Live Camera Screen -->
+                <div id="webcam-section" class="camera-container" style="display: none; width: 100%;">
+                    <div class="video-preview-wrapper">
+                        <video id="webcam-video" autoplay playsinline></video>
+                        <div class="camera-overlay">
+                            <div class="rec-dot"></div>
+                            <span>LIVE CAMERA</span>
+                        </div>
+                        <div class="timer">00:00</div>
+                    </div>
+                    
+                    <div class="camera-controls" style="display: flex; gap: 15px;">
+                        <button class="control-btn" id="start-record-btn">
+                            <span>🔴</span> Start Recording
+                        </button>
+                        <button class="control-btn active" id="stop-record-btn" style="display: none;">
+                            <span>⏹️</span> Stop & Submit
+                        </button>
+                        <button class="control-btn" id="cancel-webcam-btn">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loader-glow-ring"></div>
+        <div class="loading-title">Analyzing Your Interview</div>
+        <div class="loading-text" id="loading-text">Processing your video file...</div>
+        
+        <div class="progress-steps">
+            <div class="progress-step" id="step-1">
+                <span class="step-dot">1</span> Extracting audio voice tracks
+            </div>
+            <div class="progress-step" id="step-2">
+                <span class="step-dot">2</span> Transcribing vocabulary via Whisper
+            </div>
+            <div class="progress-step" id="step-3">
+                <span class="step-dot">3</span> Calculating vocal pitch & pace metrics
+            </div>
+            <div class="progress-step" id="step-4">
+                <span class="step-dot">4</span> Evaluating head stability & smiles
+            </div>
+            <div class="progress-step" id="step-5">
+                <span class="step-dot">5</span> Aggregating Azure AI feedback coach
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <!-- JS Scripts -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

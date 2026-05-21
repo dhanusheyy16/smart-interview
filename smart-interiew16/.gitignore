@@ -1,0 +1,23 @@
+# Local Environment Files (CONTAINS SECRETS - DO NOT COMMIT!)
+.env
+
+# Media Uploads & Temp Files
+uploads/
+*.mp4
+*.webm
+*.wav
+*.avi
+
+# Compilation & Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.DS_Store
+
+# Session Results & Reports
+results/
+*.json
+!metadata.json
+!.env.example
