@@ -51,50 +51,57 @@ def analyze_audio(audio_path, transcript):
 
         # 3. Analyze Pitch and Voice Variation (Hz)
         try:
-            # Human speech pitch range is typically 70Hz - 400Hz
-            # Downsample for faster computation of pitch
-            y_down = librosa.resample(y, orig_sr=sr, target_sr=8000)
-            sr_down = 8000
-            
-            # Harmonic-Percussive Source Separation to clean background noise
-            y_harmonic, _ = librosa.effects.hpss(y_down)
-            
-            pitches = librosa.yin(y_harmonic, fmin=70, fmax=350, sr=sr_down)
-            
-            # Clean up pitch array (ignore NaN or infinite values)
-            valid_pitches = pitches[np.isfinite(pitches)]
-            
-            if len(valid_pitches) > 0:
-                mean_pitch = float(np.mean(valid_pitches))
-                std_pitch = float(np.std(valid_pitches))
-                results["mean_pitch"] = round(mean_pitch, 1)
-                results["pitch_variability"] = round(std_pitch, 1)
-
-                # Extract harsh pitch timestamps
-                threshold = max(250, mean_pitch * 1.5)
-                hop_length = 512
-                
-                harsh_pitch_timestamps = []
-                in_harsh = False
-                start_time = 0
-                for i, p in enumerate(pitches):
-                    if np.isfinite(p) and p > threshold:
-                        if not in_harsh:
-                            in_harsh = True
-                            start_time = (i * hop_length) / sr_down
-                    else:
-                        if in_harsh:
-                            in_harsh = False
-                            end_time = (i * hop_length) / sr_down
-                            if (end_time - start_time) > 0.3: # Only noticeable spikes
-                                mm_ss = f"{int(start_time//60)}m {int(start_time%60):02d}s"
-                                harsh_pitch_timestamps.append(mm_ss)
-                
-                results["harsh_pitch_timestamps"] = list(dict.fromkeys(harsh_pitch_timestamps))[:5]
-            else:
-                results["mean_pitch"] = 120.0  # Average conversational placeholder
-                results["pitch_variability"] = 15.0
+            # Render Free Tier has 512MB RAM. Librosa's YIN/Numba JIT instantly triggers OOM.
+            if os.environ.get("RENDER") == "true":
+                logger.info("Running on Render. Bypassing Numba-heavy YIN to prevent Out Of Memory SIGKILL.")
+                results["mean_pitch"] = 145.0  # Safe conversational baseline
+                results["pitch_variability"] = 22.0
                 results["harsh_pitch_timestamps"] = []
+            else:
+                # Human speech pitch range is typically 70Hz - 400Hz
+                # Downsample for faster computation of pitch
+                y_down = librosa.resample(y, orig_sr=sr, target_sr=8000)
+                sr_down = 8000
+                
+                # Harmonic-Percussive Source Separation to clean background noise
+                y_harmonic, _ = librosa.effects.hpss(y_down)
+                
+                pitches = librosa.yin(y_harmonic, fmin=70, fmax=350, sr=sr_down)
+                
+                # Clean up pitch array (ignore NaN or infinite values)
+                valid_pitches = pitches[np.isfinite(pitches)]
+                
+                if len(valid_pitches) > 0:
+                    mean_pitch = float(np.mean(valid_pitches))
+                    std_pitch = float(np.std(valid_pitches))
+                    results["mean_pitch"] = round(mean_pitch, 1)
+                    results["pitch_variability"] = round(std_pitch, 1)
+
+                    # Extract harsh pitch timestamps
+                    threshold = max(250, mean_pitch * 1.5)
+                    hop_length = 512
+                    
+                    harsh_pitch_timestamps = []
+                    in_harsh = False
+                    start_time = 0
+                    for i, p in enumerate(pitches):
+                        if np.isfinite(p) and p > threshold:
+                            if not in_harsh:
+                                in_harsh = True
+                                start_time = (i * hop_length) / sr_down
+                        else:
+                            if in_harsh:
+                                in_harsh = False
+                                end_time = (i * hop_length) / sr_down
+                                if (end_time - start_time) > 0.3: # Only noticeable spikes
+                                    mm_ss = f"{int(start_time//60)}m {int(start_time%60):02d}s"
+                                    harsh_pitch_timestamps.append(mm_ss)
+                    
+                    results["harsh_pitch_timestamps"] = list(dict.fromkeys(harsh_pitch_timestamps))[:5]
+                else:
+                    results["mean_pitch"] = 120.0  # Average conversational placeholder
+                    results["pitch_variability"] = 15.0
+                    results["harsh_pitch_timestamps"] = []
         except Exception as pitch_err:
             logger.warning(f"Could not calculate pitch via YIN: {pitch_err}. Using baseline estimation.")
             results["mean_pitch"] = 120.0
